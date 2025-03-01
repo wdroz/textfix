@@ -1,0 +1,14 @@
+[package]
+name = "textfix"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.95"
+arboard = "3.4.1"
+inputbot = { git = "https://github.com/obv-mikhail/InputBot", branch = "develop" }
+rustautogui = "0.3.2"
+genai = "=0.1.18"
+tokio = { version = "1", features = ["full"] }
+futures = "0.3.31"
+dotenvy = "0.15.7"
