@@ -70,11 +70,11 @@ async fn enhance_text(initial_text: &str) -> Result<String> {
 async fn main() -> Result<()> {
     // Create a LocalSet to run non-Send tasks.
     let local = tokio::task::LocalSet::new();
-    // Create a channel for events triggered by CapsLockKey.
+    // Create a channel for events triggered by ScrollLockKey.
     let (tx, mut rx) = unbounded_channel::<()>();
 
     // Bind a callback that sends an event.
-    CapsLockKey.bind({
+    ScrollLockKey.bind({
         let tx = tx.clone();
         move || {
             println!("Key pressed!");
