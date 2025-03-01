@@ -8,6 +8,7 @@ use rustautogui::RustAutoGui;
 use std::thread;
 use tokio::sync::mpsc::unbounded_channel;
 use tokio::task::spawn_local;
+use tokio::time::{sleep, Duration};
 
 const MODEL: &str = "gpt-4o-mini";
 
@@ -42,7 +43,7 @@ async fn main() -> Result<()> {
     });
 
     // Run the blocking input event loop on a separate thread.
-    thread::spawn(|| {
+    std::thread::spawn(|| {
         // This call will block, but that's fine because it runs in its own thread.
         inputbot::handle_input_events(false);
     });
@@ -53,9 +54,14 @@ async fn main() -> Result<()> {
             // Spawn a local task that processes incoming events.
             spawn_local(async move {
                 while let Some(()) = rx.recv().await {
-                    println!("Event received from channel");
-                    let mut rustautogui = RustAutoGui::new(false);
+                    let rustautogui = RustAutoGui::new(false);
+                    
+                    // Simulate the copy command.
                     rustautogui.keyboard_multi_key("control_l", "control_l", Some("c"));
+                    
+                    // Wait a bit for the clipboard to update.
+                    sleep(Duration::from_millis(200)).await;
+                    
                     let mut clipboard = Clipboard::new().unwrap();
                     if let Ok(text) = clipboard.get_text() {
                         match enhance_text(&text).await {
