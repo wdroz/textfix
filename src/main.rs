@@ -5,10 +5,9 @@ use genai::Client;
 use genai::chat::{ChatMessage, ChatRequest};
 use inputbot::KeybdKey::*;
 use rustautogui::RustAutoGui;
-use std::thread;
 use tokio::sync::mpsc::unbounded_channel;
 use tokio::task::spawn_local;
-use tokio::time::{sleep, Duration};
+use tokio::time::{Duration, sleep};
 
 const MODEL: &str = "gpt-4o-mini";
 
@@ -55,13 +54,13 @@ async fn main() -> Result<()> {
             spawn_local(async move {
                 while let Some(()) = rx.recv().await {
                     let rustautogui = RustAutoGui::new(false);
-                    
+
                     // Simulate the copy command.
                     rustautogui.keyboard_multi_key("control_l", "control_l", Some("c"));
-                    
+
                     // Wait a bit for the clipboard to update.
                     sleep(Duration::from_millis(200)).await;
-                    
+
                     let mut clipboard = Clipboard::new().unwrap();
                     if let Ok(text) = clipboard.get_text() {
                         match enhance_text(&text).await {
