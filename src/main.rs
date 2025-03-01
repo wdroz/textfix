@@ -5,6 +5,8 @@ use genai::Client;
 use genai::chat::{ChatMessage, ChatRequest};
 use inputbot::KeybdKey::*;
 use rustautogui::RustAutoGui;
+use std::cell::RefCell;
+use std::rc::Rc;
 use std::thread;
 use tokio::sync::mpsc::unbounded_channel;
 use tokio::task::spawn_local;
@@ -12,7 +14,7 @@ use tokio::time::{Duration, sleep};
 
 const MODEL: &str = "gpt-4o-mini";
 
-/// Returns the key sequence for copying (key1, key2, key3) depending on the OS.
+/// Returns the key sequence for copying depending on the OS.
 fn copy_keys() -> (&'static str, &'static str, &'static str) {
     #[cfg(target_os = "macos")]
     {
@@ -24,7 +26,7 @@ fn copy_keys() -> (&'static str, &'static str, &'static str) {
     }
 }
 
-/// Returns the key sequence for pasting (key1, key2, key3) depending on the OS.
+/// Returns the key sequence for pasting depending on the OS.
 fn paste_keys() -> (&'static str, &'static str, &'static str) {
     #[cfg(target_os = "macos")]
     {
@@ -40,7 +42,7 @@ fn paste_keys() -> (&'static str, &'static str, &'static str) {
 async fn perform_copy(rustautogui: &RustAutoGui) {
     let (k1, k2, k3) = copy_keys();
     rustautogui.keyboard_multi_key(k1, k2, Some(k3));
-    // Wait for the clipboard to update.
+    // Wait a bit for the clipboard to update.
     sleep(Duration::from_millis(200)).await;
 }
 
@@ -88,28 +90,29 @@ async fn main() -> Result<()> {
     // Run our async LocalSet tasks on the main thread.
     local
         .run_until(async move {
+            // Create persistent instances of rustautogui and clipboard.
+            let rustautogui = RustAutoGui::new(false);
+            let clipboard = Rc::new(RefCell::new(Clipboard::new().unwrap()));
             // Spawn a local task that processes incoming events.
             spawn_local(async move {
                 while let Some(()) = rx.recv().await {
-                    // Create a new instance each time (if required by rustautogui).
-                    let rustautogui = RustAutoGui::new(false);
-
                     // Simulate copy: send the copy shortcut and wait.
                     perform_copy(&rustautogui).await;
-
-                    // Create the clipboard and read its content.
-                    let mut clipboard = Clipboard::new().unwrap();
-                    if let Ok(text) = clipboard.get_text() {
-                        match enhance_text(&text).await {
-                            Ok(new_text) => {
-                                clipboard.set_text(new_text).unwrap();
-                                // Simulate paste: send the paste shortcut.
-                                perform_paste(&rustautogui);
+                    // Use the persistent clipboard instance.
+                    let text_result = clipboard.borrow_mut().get_text();
+                    match text_result {
+                        Ok(text) => {
+                            println!("Clipboard text: {:?}", text);
+                            match enhance_text(&text).await {
+                                Ok(new_text) => {
+                                    clipboard.borrow_mut().set_text(new_text).unwrap();
+                                    // Simulate paste: send the paste shortcut.
+                                    perform_paste(&rustautogui);
+                                }
+                                Err(e) => eprintln!("Error enhancing text: {:?}", e),
                             }
-                            Err(e) => eprintln!("Error enhancing text: {:?}", e),
                         }
-                    } else {
-                        println!("No text in clipboard");
+                        Err(e) => println!("Error reading clipboard: {:?}", e),
                     }
                 }
             });
