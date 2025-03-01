@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use arboard::Clipboard;
 use futures::future;
 use genai::Client;
@@ -8,7 +8,7 @@ use rustautogui::RustAutoGui;
 use std::thread;
 use tokio::sync::mpsc::unbounded_channel;
 use tokio::task::spawn_local;
-use tokio::time::{sleep, Duration};
+use tokio::time::{Duration, sleep};
 
 const MODEL: &str = "gpt-4o-mini";
 
@@ -53,7 +53,7 @@ fn perform_paste(rustautogui: &RustAutoGui) {
 async fn enhance_text(initial_text: &str) -> Result<String> {
     dotenvy::dotenv().ok();
     let client = Client::default();
-    let chat_req_str = "You are used to fix text of the user. You need to keep the changes to minimum, if it's perfect, answer back with the user text, as-is";
+    let chat_req_str = "You are a skilled text editor. When given a piece of text, please correct any grammatical, spelling, or punctuation errors while keeping changes to a minimum. Do not simply return the input verbatim; only make the necessary corrections. If the text is already correct, return it unchanged.";
     let mut chat_req = ChatRequest::default().with_system(chat_req_str);
     chat_req = chat_req.append_message(ChatMessage::user(initial_text));
     let chat_res = client.exec_chat(MODEL, chat_req.clone(), None).await?;
@@ -96,7 +96,7 @@ async fn main() -> Result<()> {
 
                     // Simulate copy: send the copy shortcut and wait.
                     perform_copy(&rustautogui).await;
-                    
+
                     // Create the clipboard and read its content.
                     let mut clipboard = Clipboard::new().unwrap();
                     if let Ok(text) = clipboard.get_text() {
