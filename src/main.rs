@@ -100,7 +100,6 @@ async fn main() -> Result<()> {
                     // Create the clipboard and read its content.
                     let mut clipboard = Clipboard::new().unwrap();
                     if let Ok(text) = clipboard.get_text() {
-                        println!("Clipboard text: {:?}", text);
                         match enhance_text(&text).await {
                             Ok(new_text) => {
                                 clipboard.set_text(new_text).unwrap();
