@@ -21,3 +21,7 @@ cargo run
 Then anywhere in your OS, you can select editable text and press **SCROLLLOCK** to replace the content with the fixed content.
 
 To exit the program, you can either exit the terminal or press `CTRL+C` inside the terminal.
+
+## Demo
+
+![demo with notepad.exe on Windows](./media/demo_textfix.gif)
