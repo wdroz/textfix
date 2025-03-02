@@ -2,6 +2,14 @@
 name = "textfix"
 version = "0.1.0"
 edition = "2024"
+authors = ["William Droz <william.droz.ch@gmail.com>"]
+repository = "https://github.com/wdroz/textfix"
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/wdroz/textfix"
+description = "AI to fix your selected text"
+keywords = ["AI", "LLM", "text"]
+categories = ["command-line-utilities"]
 
 [dependencies]
 anyhow = "1.0.95"
